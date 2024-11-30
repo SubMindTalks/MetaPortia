@@ -228,7 +228,6 @@ class SequenceAnalyzer:
 
         return template
 
-#
 
 def main():
     # Initialize components
