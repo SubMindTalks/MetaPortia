@@ -1,6 +1,5 @@
 import requests
 import os
-from github import Github
 import ast
 import re
 from Bio import pairwise2
@@ -10,6 +9,9 @@ import numpy as np
 from typing import List, Dict, Tuple
 import pandas as pd
 from pathlib import Path
+import json
+import time
+from urllib.parse import quote
 
 
 class CodeNormalizer:
@@ -90,22 +92,62 @@ class CodeNormalizer:
 
 
 class GithubScanner:
-    def __init__(self, token: str):
-        self.github = Github(token)
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'CraftingInterpreters-Scanner-Analysis'
+        })
+        self.base_url = "https://api.github.com"
+
+    def search_repositories(self, query: str, max_results: int = 30) -> List[Dict]:
+        """Search GitHub repositories with pagination and rate limit handling."""
+        repositories = []
+        page = 1
+
+        while len(repositories) < max_results:
+            url = f"{self.base_url}/search/repositories"
+            params = {
+                'q': query,
+                'page': page,
+                'per_page': 30,
+                'sort': 'stars'
+            }
+
+            response = self.session.get(url, params=params)
+
+            if response.status_code == 403:  # Rate limit exceeded
+                reset_time = int(response.headers.get('X-RateLimit-Reset', 0))
+                wait_time = max(reset_time - time.time(), 0)
+                print(f"Rate limit exceeded. Waiting {wait_time:.0f} seconds...")
+                time.sleep(wait_time + 1)
+                continue
+
+            if response.status_code != 200:
+                print(f"Error searching repositories: {response.status_code}")
+                break
+
+            data = response.json()
+            if not data['items']:
+                break
+
+            repositories.extend({
+                                    'full_name': repo['full_name'],
+                                    'url': repo['html_url'],
+                                    'default_branch': repo['default_branch']
+                                } for repo in data['items'])
+
+            page += 1
+
+            # Be nice to GitHub's API
+            time.sleep(2)
+
+        return repositories[:max_results]
 
     def find_craftinginterpreters_repos(self) -> List[Dict]:
         """Find Python repositories implementing craftinginterpreters."""
         query = "craftinginterpreters language:python"
-        repositories = []
-
-        for repo in self.github.search_repositories(query):
-            repositories.append({
-                'full_name': repo.full_name,
-                'url': repo.html_url,
-                'default_branch': repo.default_branch
-            })
-
-        return repositories
+        return self.search_repositories(query)
 
     def get_scanner_class(self, repo_info: Dict) -> str:
         """Extract scanner class code from a repository."""
@@ -121,7 +163,7 @@ class GithubScanner:
             base_url = f"https://raw.githubusercontent.com/{repo_info['full_name']}/{repo_info['default_branch']}"
 
             for path in possible_paths:
-                response = requests.get(f"{base_url}/{path}")
+                response = self.session.get(f"{base_url}/{path}")
                 if response.status_code == 200:
                     content = response.text
                     # Basic check if it contains a scanner class
@@ -133,8 +175,12 @@ class GithubScanner:
                             return scanner_match.group(0)
                         return content
 
+                # Be nice to GitHub's API
+                time.sleep(1)
+
             return ""
-        except:
+        except Exception as e:
+            print(f"Error fetching scanner from {repo_info['full_name']}: {str(e)}")
             return ""
 
 
@@ -231,11 +277,7 @@ class SequenceAnalyzer:
 
 def main():
     # Initialize components
-    github_token = os.getenv("GITHUB_TOKEN")
-    if not github_token:
-        raise ValueError("Please set GITHUB_TOKEN environment variable")
-
-    github_scanner = GithubScanner(github_token)
+    github_scanner = GithubScanner()  # No token needed
     code_normalizer = CodeNormalizer()
     sequence_analyzer = SequenceAnalyzer()
 
@@ -243,21 +285,32 @@ def main():
     print("Finding repositories...")
     repos = github_scanner.find_craftinginterpreters_repos()
 
+    print(f"Found {len(repos)} repositories. Extracting scanner code...")
+
     # Extract and normalize scanner code
-    print("Extracting and normalizing scanner code...")
     normalized_scanners = []
     repo_info = []
     for repo in repos:
+        print(f"Processing {repo['full_name']}...")
         code = github_scanner.get_scanner_class(repo)
         if code:
             normalized = code_normalizer.process_code(code)
             normalized_scanners.append(normalized)
             repo_info.append(repo)
 
+    print(f"Successfully extracted scanner code from {len(normalized_scanners)} repositories")
+
+    if len(normalized_scanners) < 2:
+        print("Not enough scanner implementations found for analysis")
+        return
+
     # Perform sequence alignment and clustering
     print("Performing sequence analysis...")
     sequences, scores = sequence_analyzer.align_sequences(normalized_scanners)
-    cluster_ids, clusters = sequence_analyzer.cluster_sequences(scores)
+
+    # Adjust number of clusters based on data size
+    k = min(3, len(sequences))
+    cluster_ids, clusters = sequence_analyzer.cluster_sequences(scores, k=k)
 
     # Generate templates for each cluster
     print("Generating templates...")

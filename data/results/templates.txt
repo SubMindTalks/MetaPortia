@@ -1,0 +1,9 @@
+=== Cluster 0 Template ===
+...is_at_end():returnfalseifself.source[self.current]!=expect:returnfalseself.current+=returntruedef...is_at_end():returnfalseifself.source[self.current]!=expect:returnfalseself.current+=returntruede...s_at_end():returnfalseifself.source[self.current]!=expect:returnfalseself.current+=returntruedef...is_at_end():returnfalseifself.source[self.current]!=expect:returnfalseself.current+=returntrued...s_at_end():returnfalseifself.source[self.current]!=expect:returnfalseself.current+=returntruede...
+
+=== Cluster 1 Template ===
+...classscann:def__init__(self,source...classscann:def__init__(self,sourc...lassscann:def__init__(self,source...classscann:def__init__(self,sour...lassscann:def__init__(self,sourc...
+
+=== Cluster 2 Template ===
+...classscann:def...classscann:de...lassscann:def...=self.current...=self.current...
+
