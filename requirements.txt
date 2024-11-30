@@ -7,3 +7,6 @@ seaborn>=0.11
 black>=22.0
 mypy>=0.950
 pylint>=2.14
+biopython
+scipy
+scikit-learn

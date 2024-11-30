@@ -1,5 +1,5 @@
 import pytest
-from src.code_generator import CodeGenerator
+from src.codeGenerator import CodeGenerator
 
 def test_generate_code():
     config = {}

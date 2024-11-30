@@ -1,7 +1,7 @@
 from pathlib import Path
 from .github_fetcher import GitHubFetcher
 from .code_analysis import CodeAnalyzer
-from .code_generator import CodeGenerator
+from .codeGenerator import CodeGenerator
 from .utils import load_config
 
 def main():

@@ -20,7 +20,7 @@ class ProjectInitializer:
                 "github_fetcher.py": self._github_fetcher_content(),
                 "code_analysis.py": self._code_analysis_content(),
                 "visualization.py": self._visualization_content(),
-                "code_generator.py": self._code_generator_content(),
+                "codeGenerator.py": self._code_generator_content(),
                 "lexer.py": self._lexer_content(),
                 "parser.py": self._parser_content(),
                 "transformer.py": self._transformer_content(),
