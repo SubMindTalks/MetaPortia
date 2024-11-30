@@ -1,14 +1,12 @@
-from typing import Dict
-from .parser import Parser
-from .transformer import Transformer
-
 class CodeGenerator:
-    def __init__(self, config: Dict):
-        self.config = config
-        self.parser = Parser()
-        self.transformer = Transformer()
-        
-    def generate_code(self, ast) -> str:
-        """Generate Python code from DSL AST."""
-        # Implementation here
-        pass
+    def __init__(self):
+        self.generated_code = ""
+
+    def generate(self, ast):
+        for statement in ast:
+            if statement["type"] == "DEFINE":
+                self.generated_code += f"{statement['var_name']} = {statement['value']}\n"
+
+    def save(self, output_file):
+        with open(output_file, "w") as f:
+            f.write(self.generated_code)

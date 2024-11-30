@@ -1,13 +1,9 @@
-import github
-from pathlib import Path
-from typing import List, Dict
+from github import Github
 
 class GitHubFetcher:
-    def __init__(self, config: Dict):
-        self.config = config
-        self.api = github.Github(config['github_token'])
-        
-    def fetch_repositories(self) -> List[Path]:
-        """Fetch relevant repositories based on config criteria."""
-        # Implementation here
-        pass
+    def __init__(self, token):
+        self.github = Github(token)
+
+    def fetch_repos(self, query, max_results=10):
+        repos = self.github.search_repositories(query=query)
+        return [{"name": repo.full_name, "url": repo.clone_url} for repo in repos[:max_results]]
