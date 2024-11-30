@@ -1,0 +1,14 @@
+analysis:
+  max_patterns: 1000
+  min_pattern_frequency: 5
+  min_stars: 50
+generation:
+  output_dir: data/generated
+  template_dir: data/templates
+github:
+  max_repositories: 100
+  search_queries:
+  - language:python metaprogramming
+  - language:python code generation
+  - language:python pattern matching
+  token: your-token-here

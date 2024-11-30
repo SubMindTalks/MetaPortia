@@ -1,0 +1,23 @@
+# PortiaMeta DSL Grammar v1
+
+# Top-level constructs
+program        ::= statement*
+statement      ::= macro_def | macro_call | code_block
+
+# Macro definitions
+macro_def      ::= "macro" IDENTIFIER "(" param_list ")" ":" NEWLINE INDENT body DEDENT
+param_list     ::= (IDENTIFIER ("," IDENTIFIER)*)?
+body           ::= statement+
+
+# Macro calls
+macro_call     ::= "$" IDENTIFIER "(" arg_list ")"
+arg_list       ::= (expression ("," expression)*)?
+
+# Code blocks and expressions
+code_block     ::= (!/macro|\$/ .)+
+expression     ::= IDENTIFIER | STRING | NUMBER | macro_call
+
+# Lexical rules
+IDENTIFIER     ::= [a-zA-Z_][a-zA-Z0-9_]*
+STRING         ::= '"' (/[^"\]/ | "\" .)* '"'
+NUMBER         ::= [0-9]+ ("." [0-9]+)?

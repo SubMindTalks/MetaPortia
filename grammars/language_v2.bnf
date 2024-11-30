@@ -1,0 +1,17 @@
+# PortiaMeta DSL Grammar v2 (Extended)
+
+# Added support for expression macros and pattern matching
+
+program        ::= statement*
+statement      ::= macro_def | expr_macro_def | macro_call | code_block
+
+# Expression macro definitions
+expr_macro_def ::= "expr_macro" IDENTIFIER "(" param_list ")" ":" NEWLINE INDENT body DEDENT
+
+# Pattern matching extensions
+pattern_match  ::= "match" expression ":" NEWLINE INDENT case+ DEDENT
+case           ::= "case" pattern ("if" expression)? ":" NEWLINE INDENT statement+ DEDENT
+pattern        ::= IDENTIFIER | literal | struct_pattern | "_"
+struct_pattern ::= "(" pattern ("," pattern)* ")" | "[" pattern ("," pattern)* "]"
+
+# Rest of the grammar remains the same as v1...
